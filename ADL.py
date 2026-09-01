@@ -25,7 +25,7 @@ import net_import
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import xlrd
-import xlutils  
+import xlutils  #操作 Excel 文件的实用工具，如复制、分割、筛选等
 import xlwt
 #import vit_fusion
 from torchsummary import summary
@@ -53,11 +53,9 @@ def image_show(img,lab):
 '''-------------TEST_PART-----------------------------'''
 
 def c_evaluate(y_actual, y_predicted):
-    # print(y_actual.shape,"11111")
+
     y_actual=y_actual
     y_predicted=y_predicted
-   # y_actual=np.array(7*y_actual)
-   # y_predicted=np.array(7*y_predicted)
     acc_mse = []
     acc = []
     acc_ssim = []
@@ -65,19 +63,16 @@ def c_evaluate(y_actual, y_predicted):
     for i in range(0, y_actual.shape[0]):
 
 
-       # a = mean_squared_error(y_actual[i], y_predicted[i])
-        #print(y_actual.shape)
+
         y_actual[y_actual >= 0.5] = 1
         y_actual[y_actual < 0.5] = 0
         c = compare_ssim(y_actual[i,], y_predicted[i,],data_range=y_actual[i,].max() - y_actual[i,].min())
-      #  a = 1 - mean_squared_error(y_actual[i], y_predicted[i])
         a = 1 - compare_mse(y_actual[i], y_predicted[i])
 
         b =1-np.mean(abs(y_actual[i]- y_predicted[i]))
         acc_mse.append(a)
         acc.append(b)
         acc_ssim.append(c)
-    # print(y_actual.shape)
 
     return [np.mean(acc_mse),np.mean(acc), np.mean(acc_ssim)]
 
@@ -91,8 +86,8 @@ def acc_test_forward(model,test_dataset,y_true):
     acc_dataloader = Data.DataLoader(
         dataset=torch_acc_dataset,  # torch TensorDataset format
         batch_size=100,  # mini batch size
-        shuffle=0, 
-        num_workers=0, 
+        shuffle=0,
+        num_workers=0,
     )
     acc = []
     accmap = []
@@ -116,8 +111,8 @@ def acc_test_rev(model,test_dataset,y_true):
     acc_dataloader = Data.DataLoader(
         dataset=torch_acc_dataset,  # torch TensorDataset format
         batch_size=500,  # mini batch size
-        shuffle=0,  # 要不要打乱数据 (打乱比较好)
-        num_workers=0,  # 多线程来读数据
+        shuffle=0,
+        num_workers=0,
     )
     acc = []
     accmap = []
@@ -146,10 +141,8 @@ def train_model(model=0,train_dataloader=0,test_dataloader=0,learning_rate=0,los
         os.makedirs(load_path)
 
 
-    loss_fn =loss# nn.MSELoss()
-    # loss_fn = nn.BCEWithLogitsLoss()  #nn.BCELoss()
+    loss_fn =loss
     early_break = 0
-    # 优化器
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
     # 添加tensorboard
@@ -242,7 +235,6 @@ def train_model(model=0,train_dataloader=0,test_dataloader=0,learning_rate=0,los
         writer.add_scalar("test_loss", ave_test_loss, i)
         writer.add_scalar("test_accuracy", ave_accuracy, i)
 
- 
 
     wk.save(load_path+ "self.xls")
 
@@ -268,8 +260,8 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
     train_dataloader = Data.DataLoader(
         dataset=torch_train_dataset,  # torch TensorDataset format
         batch_size=100,  # mini batch size
-        shuffle=0, 
-        num_workers=0, 
+        shuffle=0,
+        num_workers=0,
     )
     if torch.cuda.is_available():
         imgs = val_x.to(device)
@@ -279,10 +271,12 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
     loss = loss_fn(outputs, targets)
     file_path = load_path+"befor_finetune.txt"
     if os.path.exists(file_path):
-      
+
         with open(file_path, 'a', encoding='utf-8') as f:
             f.write(str(loss.item())+ "\n")
+
     else:
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(str(loss.item()) + "\n")
 
@@ -303,6 +297,7 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
             opt.zero_grad()
             outputs = reverse_model(imgs)
             loss = loss_fn(outputs, targets)
+            # 优化器
 
             loss.backward()
             opt.step()
@@ -350,14 +345,14 @@ def finetune_forward_model(forward_model,train_x=0, train_y=0,learning_rate=0,lo
     train_dataloader = Data.DataLoader(
         dataset=torch_train_dataset,  # torch TensorDataset format
         batch_size=100,  # mini batch size
-        shuffle=0, 
-        num_workers=0, 
+        shuffle=0,
+        num_workers=0,
     )
 
     for i in range(epoch):
 
         print("-------epoch  {} -------".format(i + 1))
-   
+
         running_loss = 0
         forward_model.train()
         for step, data in enumerate(train_dataloader, start=0):
@@ -386,7 +381,7 @@ def train_transmit_model(reverse_model=0,forward_model=0, train_data_in=0,train_
     load_path=load_path+work_dir
     pre_label =[]
     transmit_step=500
-    train_squ_num=int(train_data_in.shape[0]/transmit_step)-42#42  -210
+    train_squ_num=int(train_data_in.shape[0]/transmit_step)-21
     loss_fn = nn.MSELoss()
     err_ev=0
     err_fix=0
@@ -402,8 +397,8 @@ def train_transmit_model(reverse_model=0,forward_model=0, train_data_in=0,train_
         train_xx_dataloader = Data.DataLoader(
             dataset=torch_xx_dataset,  # torch TensorDataset format
             batch_size=100,  # mini batch size
-            shuffle=0, 
-            num_workers=0, 
+            shuffle=0,
+            num_workers=0,
         )
         err_1000 = 0
 
@@ -419,9 +414,11 @@ def train_transmit_model(reverse_model=0,forward_model=0, train_data_in=0,train_
                 rev_begin=time.time()
                 outputs_pattern = reverse_model(imgs)
                 rev_end = time.time()
-                outputs_pattern = outputs_pattern.view(outputs_pattern.shape[0], 32, 32).unsqueeze(1)  
+
+                outputs_pattern = outputs_pattern.view(outputs_pattern.shape[0], 32, 32).unsqueeze(1)  # 变化并增加一个维度
                 outputs_speckles = forward_model(outputs_pattern)
                 rev_end = time.time()
+
 
 
             err_now = loss_fn(outputs_speckles, targets)
@@ -474,9 +471,9 @@ def train_transmit_model(reverse_model=0,forward_model=0, train_data_in=0,train_
         outputs_pattern = outputs_pattern.detach().numpy()
         acc_now = c_evaluate(
             train_data_y[num + i * transmit_step:num + (i + 1) * transmit_step].reshape(transmit_step, 1024),
-            outputs_pattern) 
-        accmap.append(acc_now)  # mse acc ssim
-        # np.append(pre_label,outputs_pattern)
+            outputs_pattern)
+        accmap.append(acc_now)
+
 
         print("saved epoch {}".format(i + 1))
         print("van_accuracy: {}".format(acc_now[0]))
@@ -500,7 +497,6 @@ parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--lr', type=float, default=0.0001)
 
 parser.add_argument('--work_dir', default='./CNN', help='create model name')
-
 parser.add_argument('--weights', type=str, default='./vit_base_patch16_224_in21k.pth',
                         help='initial weights path')
 parser.add_argument('--freeze-layers', type=bool, default=True)
@@ -513,7 +509,6 @@ def train(work_dir=False,load_path=False,pre_train=0):
     batch_size = args.batch_size
     epoch = args.epoch
     learning_rate = args.lr
-
     if load_path == False:
         path = args.path
     else:
@@ -554,7 +549,7 @@ def train(work_dir=False,load_path=False,pre_train=0):
     # summary(model, (1, 32, 32))
     print("x.shape{}".format(y_train.shape))
 
-    torch_dataset = Data.TensorDataset(torch.Tensor(x_train_big[:num]),torch.Tensor(y_train[:num].reshape(num,1024)))  # TORCH.Tensor and tensor not the same
+    torch_dataset = Data.TensorDataset(torch.Tensor(x_train_big[:num]),torch.Tensor(y_train[:num].reshape(num,1024)))
     train_dataloader = Data.DataLoader(
         dataset=torch_dataset,
         batch_size=args.batch_size,
@@ -571,7 +566,7 @@ def train(work_dir=False,load_path=False,pre_train=0):
     )
 
     torch_dataset = Data.TensorDataset(torch.Tensor(y_train[:num]),
-                                       torch.Tensor(x_train[:num].reshape(num,1024)))  # TORCH.Tensor and tensor not the same
+                                       torch.Tensor(x_train[:num].reshape(num,1024)))
     Forward_train_dataloader = Data.DataLoader(
         dataset=torch_dataset,
         batch_size=args.batch_size,
