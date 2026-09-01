@@ -25,7 +25,7 @@ import net_import
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import xlrd
-import xlutils  #操作 Excel 文件的实用工具，如复制、分割、筛选等
+import xlutils  
 import xlwt
 #import vit_fusion
 from torchsummary import summary
@@ -47,7 +47,6 @@ def image_show(img,lab):
     plt.subplot(1, 2, 2)
     plt.imshow(lab)
     plt.title("label")
-    # 必须有这个，要不然无法显示
     plt.show()
 
 
@@ -92,8 +91,8 @@ def acc_test_forward(model,test_dataset,y_true):
     acc_dataloader = Data.DataLoader(
         dataset=torch_acc_dataset,  # torch TensorDataset format
         batch_size=100,  # mini batch size
-        shuffle=0,  # 要不要打乱数据 (打乱比较好)
-        num_workers=0,  # 多线程来读数据
+        shuffle=0, 
+        num_workers=0, 
     )
     acc = []
     accmap = []
@@ -243,8 +242,7 @@ def train_model(model=0,train_dataloader=0,test_dataloader=0,learning_rate=0,los
         writer.add_scalar("test_loss", ave_test_loss, i)
         writer.add_scalar("test_accuracy", ave_accuracy, i)
 
-        # 写入单元格
-        # 保存工作簿,只能保存为xls格式
+ 
 
     wk.save(load_path+ "self.xls")
 
@@ -281,12 +279,10 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
     loss = loss_fn(outputs, targets)
     file_path = load_path+"befor_finetune.txt"
     if os.path.exists(file_path):
-        # 文件存在，使用r+模式（读写）
+      
         with open(file_path, 'a', encoding='utf-8') as f:
             f.write(str(loss.item())+ "\n")
-
     else:
-        # 文件不存在，创建并写入
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(str(loss.item()) + "\n")
 
@@ -296,7 +292,6 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
 
         print("-------epoch  {} -------".format(i + 1))
 
-        # 训练步骤
         running_loss = 0
         reverse_model.train()
         for step, data in enumerate(train_dataloader, start=0):
@@ -308,7 +303,6 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
             opt.zero_grad()
             outputs = reverse_model(imgs)
             loss = loss_fn(outputs, targets)
-            # 优化器
 
             loss.backward()
             opt.step()
@@ -356,14 +350,14 @@ def finetune_forward_model(forward_model,train_x=0, train_y=0,learning_rate=0,lo
     train_dataloader = Data.DataLoader(
         dataset=torch_train_dataset,  # torch TensorDataset format
         batch_size=100,  # mini batch size
-        shuffle=0,  # 要不要打乱数据 (打乱比较好)
-        num_workers=0,  # 多线程来读数据
+        shuffle=0, 
+        num_workers=0, 
     )
 
     for i in range(epoch):
 
         print("-------epoch  {} -------".format(i + 1))
-        # 训练步骤
+   
         running_loss = 0
         forward_model.train()
         for step, data in enumerate(train_dataloader, start=0):
@@ -409,8 +403,8 @@ def train_transmit_model(reverse_model=0,forward_model=0, train_data_in=0,train_
         train_xx_dataloader = Data.DataLoader(
             dataset=torch_xx_dataset,  # torch TensorDataset format
             batch_size=100,  # mini batch size
-            shuffle=0,  # 要不要打乱数据 (打乱比较好)
-            num_workers=0,  # 多线程来读数据
+            shuffle=0, 
+            num_workers=0, 
         )
         err_1000 = 0
 
@@ -426,11 +420,9 @@ def train_transmit_model(reverse_model=0,forward_model=0, train_data_in=0,train_
                 rev_begin=time.time()
                 outputs_pattern = reverse_model(imgs)
                 rev_end = time.time()
-             #   print((rev_begin - rev_end)*1000000, "这是正向模型的")
-                outputs_pattern = outputs_pattern.view(outputs_pattern.shape[0], 32, 32).unsqueeze(1)  # 变化并增加一个维度
+                outputs_pattern = outputs_pattern.view(outputs_pattern.shape[0], 32, 32).unsqueeze(1)  
                 outputs_speckles = forward_model(outputs_pattern)
                 rev_end = time.time()
-             #   print( (rev_begin-rev_end)*1000000,"这是双向模型的")
 
 
             err_now = loss_fn(outputs_speckles, targets)
@@ -509,10 +501,9 @@ parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--lr', type=float, default=0.0001)
 
 parser.add_argument('--work_dir', default='./CNN', help='create model name')
-    # 预训练权重路径，如果不想载入就设置为空字符
+
 parser.add_argument('--weights', type=str, default='./vit_base_patch16_224_in21k.pth',
                         help='initial weights path')
-    # 是否冻结权重
 parser.add_argument('--freeze-layers', type=bool, default=True)
 parser.add_argument('--device', default='cuda:0', help='device id (i.e. 0 or 0,1 or cpu)')
 print(torch.cuda.is_available(), "gpu")
@@ -523,7 +514,7 @@ def train(work_dir=False,load_path=False,pre_train=0):
     batch_size = args.batch_size
     epoch = args.epoch
     learning_rate = args.lr
-    # 储存路径
+
     if load_path == False:
         path = args.path
     else:
