@@ -25,7 +25,7 @@ import net_import
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import xlrd
-import xlutils  #操作 Excel 文件的实用工具，如复制、分割、筛选等
+import xlutils
 import xlwt
 #import vit_fusion
 from torchsummary import summary
@@ -160,7 +160,7 @@ def train_model(model=0,train_dataloader=0,test_dataloader=0,learning_rate=0,los
             print("now_earlybreak")
             break
         print("-------epoch  {} -------".format(i + 1))
-        # 训练步骤
+
         model.train()
         running_loss = 0
         for step, data in enumerate(train_dataloader, start=0):
@@ -172,14 +172,14 @@ def train_model(model=0,train_dataloader=0,test_dataloader=0,learning_rate=0,los
             optimizer.zero_grad()
             outputs = model(imgs)
             loss = loss_fn(outputs, targets)
-            # 优化器
+     
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
         writer.add_scalar("train_loss", running_loss / len(train_dataloader), i)
         print('train_loss: %.3f  ' %
               (running_loss / (len(train_dataloader))))
-        # 测试步骤
+   
         model.eval()
         total_test_loss = 0.0
         total_accuracy = 0.0
@@ -297,7 +297,7 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
             opt.zero_grad()
             outputs = reverse_model(imgs)
             loss = loss_fn(outputs, targets)
-            # 优化器
+         
 
             loss.backward()
             opt.step()
