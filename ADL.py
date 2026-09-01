@@ -268,8 +268,8 @@ def finetune_model(reverse_model=0,train_x=0, train_y=0,val_x=0,val_y=0,learning
     train_dataloader = Data.DataLoader(
         dataset=torch_train_dataset,  # torch TensorDataset format
         batch_size=100,  # mini batch size
-        shuffle=0,  # 要不要打乱数据 (打乱比较好)
-        num_workers=0,  # 多线程来读数据
+        shuffle=0, 
+        num_workers=0, 
     )
     if torch.cuda.is_available():
         imgs = val_x.to(device)
@@ -369,7 +369,6 @@ def finetune_forward_model(forward_model,train_x=0, train_y=0,learning_rate=0,lo
             opt.zero_grad()
             outputs = forward_model(imgs)
             loss = loss_fn(outputs, targets)
-            # 优化器
 
             loss.backward()
             opt.step()
@@ -475,7 +474,7 @@ def train_transmit_model(reverse_model=0,forward_model=0, train_data_in=0,train_
         outputs_pattern = outputs_pattern.detach().numpy()
         acc_now = c_evaluate(
             train_data_y[num + i * transmit_step:num + (i + 1) * transmit_step].reshape(transmit_step, 1024),
-            outputs_pattern)  # 这块有bug
+            outputs_pattern) 
         accmap.append(acc_now)  # mse acc ssim
         # np.append(pre_label,outputs_pattern)
 
